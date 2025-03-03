@@ -1,0 +1,84 @@
+app.h
+
+typedef enum
+{
+	/* Application's state machine's initial state. */
+	APP_STATE_INIT=0,
+	APP_STATE_SERVICE_TASKS,
+    TIMER_INTERRUPT,
+	/* TODO: Define states used by the application state machine. */
+
+} APP_STATES;
+
+typedef struct
+{
+    /* The application's current state */
+    APP_STATES state;
+    int count;
+    int flag;
+    /* TODO: Define any additional data used by the application. */
+
+} APP_DATA;
+
+-------------------------------------------
+system_Interrupt.c
+
+ APP_DATA appData; 
+
+void __ISR(_TIMER_3_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
+{
+    appData.state=TIMER_INTERRUPT;
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_3);
+}
+
+-------------------------------------------
+app.c
+
+bool appInitialized;
+
+void APP_Tasks ( void )
+{
+
+    /* Check the application's current state. */
+    switch ( appData.state )
+    {
+        /* Application's initial state. */
+        case APP_STATE_INIT:
+        {
+            appInitialized = true;
+       
+        
+            if (appInitialized)
+            {
+                appData.count= 0;
+                appData.flag =0;
+                DRV_TMR0_Start();
+                appData.state = APP_STATE_SERVICE_TASKS;
+            }
+            break;
+        }
+
+        case APP_STATE_SERVICE_TASKS:
+        {
+            break;
+        }
+        case TIMER_INTERRUPT:
+        {
+            if(appData.count==15) appData.count=0;
+            appData.count++;
+            LATG=appData.count<<12;
+            appData.state = APP_STATE_SERVICE_TASKS;
+            break;
+        }
+
+        /* TODO: implement your application state machine.*/
+        
+
+        /* The default state should never be executed. */
+        default:
+        {
+            /* TODO: Handle error in application's state machine. */
+            break;
+        }
+    }
+}

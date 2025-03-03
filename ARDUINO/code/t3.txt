@@ -1,0 +1,17 @@
+
+int out =9;
+
+void setup() {
+    Serial.begin(9600);
+  pinMode(out, INPUT); 
+}
+
+void loop() {
+
+  int val = digitalRead(out);   
+  digitalWrite(13, val);
+  if(val ==1 ) 
+    Serial.println("Hello World");
+  delay(1000);  
+
+}

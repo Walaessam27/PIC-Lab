@@ -1,0 +1,24 @@
+
+
+int IR =9;
+
+void setup() {
+    Serial.begin(9600);
+    
+    pinMode(IR, INPUT); 
+}
+
+void loop() {
+
+  int val =  digitalRead(IR);
+
+  if( val == HIGH){
+    Serial.println("Object detected" );
+  }
+  else {
+    Serial.println(" No Object detected" );
+  }
+  delay(500);
+    
+
+}

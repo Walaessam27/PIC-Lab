@@ -1,0 +1,108 @@
+app.h
+
+typedef enum
+{
+	/* Application's state machine's initial state. */
+	APP_STATE_INIT=0,
+	APP_STATE_SERVICE_TASKS,
+	/* TODO: Define states used by the application state machine. */
+
+} APP_STATES;
+
+
+
+typedef struct
+{
+    /* The application's current state */
+    APP_STATES state;
+    /* TODO: Define any additional data used by the application. */
+
+} APP_DATA;
+---------------------------------
+ system_interrupt.c
+
+
+extern APP_DATA appData;
+int flag=0; 
+int i; 
+int speed=80;
+void __ISR(_CHANGE_NOTICE_VECTOR, ipl1AUTO)_IntHandlerChangeNotification(void)
+{
+    for(i=0;i<500000;i++);
+    /* TODO: Add code to process interrupt here */
+     if(PORTGbits.RG6==0 && PORTGbits.RG7==0)
+    {
+       speed=50;
+        LATG=0x8FFF;
+    }
+     else if(PORTGbits.RG6==1 && PORTGbits.RG7==0 )
+    {
+        speed=100;
+        LATG=0x1FFF;
+    }
+    else if(PORTGbits.RG6==0 && PORTGbits.RG7==1)
+    {
+       speed=150;
+        LATG=0x8FFF;
+    }
+    else if(PORTGbits.RG6==1 && PORTGbits.RG7==1)
+    {
+       speed=200;
+        LATG=0x8FFF;
+    }
+    DRV_OC0_PulseWidthSet(speed);
+    //appData.state = APP_STATE_SERVICE_TASKS;
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_CHANGE_NOTICE);
+}
+void __ISR(_TIMER_2_VECTOR, ipl1AUTO) IntHandlerDrvTmrInstance0(void)
+{
+  
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
+}
+void __ISR(_OUTPUT_COMPARE_2_VECTOR, ipl1AUTO)_IntHandlerDrvOCInstance0(void)
+{
+    PLIB_INT_SourceFlagClear(INT_ID_0, INT_SOURCE_OUTPUT_COMPARE_2);
+}
+
+--------------------------------------------------
+app.c
+
+void APP_Tasks ( void )
+{
+
+    /* Check the application's current state. */
+    switch ( appData.state )
+    {
+        /* Application's initial state. */
+        case APP_STATE_INIT:
+        {
+            appInitialized = true;
+       
+        
+            if (appInitialized)
+            {
+                DRV_TMR0_Start();
+                 DRV_OC0_Start();
+                appData.state = APP_STATE_SERVICE_TASKS;
+            }
+            break;
+        }
+
+        case APP_STATE_SERVICE_TASKS:
+        {
+            //DRV_OC0_PulseWidthSet(100);
+            break;
+        }
+
+        /* TODO: implement your application state machine.*/
+        
+
+        /* The default state should never be executed. */
+        default:
+        {
+            /* TODO: Handle error in application's state machine. */
+            break;
+        }
+    }
+}
+
